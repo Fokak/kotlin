@@ -62,12 +62,8 @@ fun ScriptEngine.runAndRestoreContext(
     return try {
         this.f()
     } finally {
-        val after = globalObject.toMapWithAllMembers()
-        val diff = after.entries - originalState.entries
-
-
-        diff.forEach {
-            globalObject[it.key] = originalState[it.key] ?: ScriptRuntime.UNDEFINED
+        for (key in globalObject.keys) {
+            globalObject[key] = originalState[key] ?: ScriptRuntime.UNDEFINED
         }
     }
 }
@@ -87,7 +83,7 @@ abstract class AbstractNashornJsTestChecker {
         get() = engineCache ?: createScriptEngineForTest().also {
             engineCache = it
             globalObject = it.eval("this") as ScriptObjectMirror
-            originalState = globalObject?.toMapWithAllMembers()
+            originalState = globalObject?.toMap()
         }
 
     fun check(
