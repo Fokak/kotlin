@@ -80,11 +80,7 @@ abstract class AbstractNashornJsTestChecker {
     private var originalState: Map<String, Any?>? = null
 
     protected val engine
-        get() = engineCache ?: createScriptEngineForTest().also {
-            engineCache = it
-            globalObject = it.eval("this") as ScriptObjectMirror
-            originalState = globalObject?.toMap()
-        }
+        get() = engineCache ?: newScriptEngineForTest().also { engineCache = it }
 
     fun check(
         files: List<String>,
@@ -121,7 +117,7 @@ abstract class AbstractNashornJsTestChecker {
         // Recreate the engine once in a while
         if (engineUsageCnt++ > 100) {
             engineUsageCnt = 0
-            engineCache = createScriptEngineForTest()
+            engineCache = newScriptEngineForTest()
         }
 
         beforeRun()
@@ -130,6 +126,11 @@ abstract class AbstractNashornJsTestChecker {
             files.forEach(engine::loadFile)
             engine.f()
         }
+    }
+
+    private fun newScriptEngineForTest(): ScriptEngine = createScriptEngineForTest().also {
+        globalObject = it.eval("this") as ScriptObjectMirror
+        originalState = globalObject?.toMap()
     }
 
     protected abstract fun createScriptEngineForTest(): ScriptEngine
